@@ -1,55 +1,98 @@
 import hashlib  # For hashing (fingerprints)
+import os  # For file operations
 
 class Block:
-    def __init__(self, index, data, previous_hash):
-        """Create a new block."""
-        self.index = index  # The position of the block in the chain
-        self.data = data  # The chat message
-        self.previous_hash = previous_hash  # Link to the previous block
-        self.hash = self.calculate_hash()  # The unique fingerprint of this block
+    def __init__(self, index, messages, previous_hash):
+        self.index = index
+        self.messages = messages
+        self.previous_hash = previous_hash
+        self.hash = self.calculate_hash()
     
     def calculate_hash(self):
-        """Create a unique hash for this block using its data."""
-        block_content = f"{self.index}{self.data}{self.previous_hash}"
+        block_content = f"{self.index}{''.join(self.messages)}{self.previous_hash}"
         return hashlib.sha256(block_content.encode()).hexdigest()
 
 class Blockchain:
     def __init__(self):
-        """Create the blockchain with the first (genesis) block."""
-        self.chain = [self.create_genesis_block()]  # Our blockchain is a list of blocks
+        self.chain = [self.create_genesis_block()]
+        self.pending_messages = self.load_pending_messages()
+        self.save_final_blockchain()  # Save blockchain state at startup
     
     def create_genesis_block(self):
-        """The first block in the chain."""
-        return Block(0, "Genesis Block", "0")
+        return Block(0, ["Genesis Block"], "0")
     
-    def add_block(self, data):
-        """Add a new block with chat message data."""
-        previous_block = self.chain[-1]  # Get the last block in the chain
-        new_block = Block(len(self.chain), data, previous_block.hash)  # Create the new block
-        self.chain.append(new_block)  # Add it to the chain
+    def get_message_requirement(self):
+        block_index = len(self.chain)
+        if block_index == 0:
+            return 1
+        phase = (block_index - 1) // 3
+        return 100 * (2 ** phase)
     
-    def print_chain(self):
-        """Print all blocks in the blockchain."""
-        for block in self.chain:
-            print(f"Block {block.index}:")
-            print(f"Data: {block.data}")
-            print(f"Previous Hash: {block.previous_hash}")
-            print(f"Hash: {block.hash}\n")
+    def add_message(self, message):
+        self.pending_messages.append(message)
+        self.save_pending_messages()
+        messages_needed = self.get_message_requirement()
+        print(f"📥 Added message: '{message}' ({len(self.pending_messages)}/{messages_needed} required)")
+        
+        if len(self.pending_messages) >= messages_needed:
+            self.mine_block()
+    
+    def mine_block(self):
+        previous_block = self.chain[-1]
+        messages_needed = self.get_message_requirement()
+        block_messages = self.pending_messages[:messages_needed]
+        new_block = Block(len(self.chain), block_messages, previous_block.hash)
+        self.chain.append(new_block)
+        print(f"⛏️ Mined Block {new_block.index} with {len(new_block.messages)} messages!")
+        print(f"🔐 Block Hash: {new_block.hash}\n")
+        self.pending_messages = self.pending_messages[messages_needed:]
+        self.save_pending_messages()
+        self.save_final_blockchain()
+    
+    def save_pending_messages(self):
+        with open('pending_messages.txt', 'w', encoding='utf-8') as f:  # ✅ UTF-8 encoding added here
+            for message in self.pending_messages:
+                f.write(message + "\n")
+        print(f"💾 Saved {len(self.pending_messages)} pending messages to 'pending_messages.txt'.")
+    
+    def load_pending_messages(self):
+        if os.path.exists('pending_messages.txt'):
+            with open('pending_messages.txt', 'r', encoding='utf-8') as f:  # ✅ UTF-8 encoding added here
+                messages = [line.strip() for line in f.readlines()]
+            print("")
+            print(f"📂 Loaded {len(messages)} pending messages from 'pending_messages.txt'.")
+            return messages
+        else:
+            print("📂 No partially mined block found (starting fresh).")
+            return []
+    
+    def save_final_blockchain(self):
+        """Save the entire blockchain to a file."""
+        with open('final_blockchain.txt', 'w', encoding='utf-8') as f:  # ✅ UTF-8 encoding added here
+            for block in self.chain:
+                f.write(f"🔗 Block {block.index}:\n")
+                f.write(f"  Messages ({len(block.messages)} total): {block.messages}\n")
+                f.write(f"  Previous Hash: {block.previous_hash}\n")
+                f.write(f"  Hash: {block.hash}\n\n")
+        print(f"💾 Saved final blockchain to 'final_blockchain.txt'.")
+    
 
-# Real-time interactive chat
-blockchain = Blockchain()  # Create a blockchain
+blockchain = Blockchain()
 
 print("")
-print("💬 Welcome to YAPit! A blockchain built by interaction. For you, by you.")
+print("💬 Welcome to YapIt!")
 print("")
-print(">Type a message to add it to the blockchain.")
-print(">Type 'exit' to end the chat and print the final blockchain.\n")
+print("The blockchain built by interaction.")
+print("")
+print("For you, by you")
+print("")
+print("Type a message to add it to the blockchain.")
+print("Type 'exit' to disconnect from the blockchain")
 
 while True:
-    message = input("📝 Your message: ")  # Get input from the user
-    if message.lower() == 'exit':  # If the user types 'exit', end the chatexit
-        print("\n🔗 Here's your final blockchain:")
-        blockchain.print_chain()
-        break  # Stop the program
-    blockchain.add_block(message)  # Add the message to the blockchain
-    print(f"✅ Message added to the blockchain!\n")
+    message = input("📝 Your message: ")
+    if message.lower() == 'exit':
+        blockchain.save_final_blockchain()
+        print("\n🔗 Final blockchain has been saved to 'final_blockchain.txt'.")
+        break
+    blockchain.add_message(message)
