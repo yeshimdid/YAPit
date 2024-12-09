@@ -60,6 +60,7 @@ class Blockchain:
             with open('pending_messages.txt', 'r', encoding='utf-8') as f:  # ✅ UTF-8 encoding added here
                 messages = [line.strip() for line in f.readlines()]
             print("")
+            print("")
             print(f"📂 Loaded {len(messages)} pending messages from 'pending_messages.txt'.")
             return messages
         else:
