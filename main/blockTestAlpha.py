@@ -1,4 +1,4 @@
-import hashlib  # For hashing (fingerprints) like before
+import hashlib  # For hashing (fingerprints)
 
 class Block:
     def __init__(self, index, data, previous_hash):
@@ -41,6 +41,7 @@ blockchain = Blockchain()  # Create a blockchain
 
 print("")
 print("💬 Welcome to YAPit! A blockchain built by interaction. For you, by you.")
+print("")
 print(">Type a message to add it to the blockchain.")
 print(">Type 'exit' to end the chat and print the final blockchain.\n")
 
