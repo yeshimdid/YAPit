@@ -2,8 +2,8 @@ import hashlib
 import os
 import time
 import json
+from participation_tracker import update_participation, save_participation_stats, load_participation_stats
 
-# Update the directory path to use the 'vip' directory, relative to the 'main' folder
 DATA_DIR = '../vip'
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -27,30 +27,24 @@ class Blockchain:
     FINAL_BLOCKCHAIN_PATH = os.path.join(DATA_DIR, 'final_blockchain.txt')
 
     def __init__(self):
+        # Load participation stats on startup
+        load_participation_stats()
         self.chain = [self.create_genesis_block()]
         self.pending_messages = self.load_pending_messages()
+        print(f"Blockchain initialized with {len(self.chain)} blocks.")
 
     def create_genesis_block(self):
         """Creates the first block (Genesis block) in the blockchain."""
         return Block(0, ["Genesis Block"], "0")
-    
-    def test_file_write(self):
-        """Directly writes a test line to 'pending_messages.txt' to check file writing capability."""
-        try:
-            with open(self.PENDING_MESSAGES_PATH, 'w') as f:
-                f.write("Test message for direct write\n")
-            print(f"Direct write test successful: File written at {self.PENDING_MESSAGES_PATH}")
-        except Exception as e:
-            print(f"Direct write test failed: {e}")
 
     def add_message(self, username, message):
         """Adds a new message to the pending messages with the user's username."""
         self.pending_messages.append({"username": username, "message": message})
-        print(f"Added message from {username}: {message}")
-        print(f"Total pending messages: {len(self.pending_messages)}")
+#        print(f"Added message from {username}: {message}")
+        update_participation(username, len(self.chain))  # Track participation for the current block
+#        print(f"Participation updated for {username} in block {len(self.chain)}")
         self.check_mine_block()
         self.save_pending_messages()
-
 
     def check_mine_block(self):
         """Checks if the pending messages meet the mining requirement and mines a block if true."""
@@ -71,19 +65,21 @@ class Blockchain:
         self.chain.append(new_block)
         print(f"Mined new block: {new_block.hash}")
         self.pending_messages = self.pending_messages[messages_needed:]
+        save_participation_stats()  # Save participation stats for the mined block
         self.save_final_blockchain()
 
     def save_pending_messages(self):
         """Saves all pending messages to a file."""
         if self.pending_messages:
-            with open(self.PENDING_MESSAGES_PATH, 'w', encoding='utf-8') as f:
-                for message in self.pending_messages:
-                    # Convert each message dict to a JSON string before saving
-                    f.write(json.dumps(message) + "\n")
-            print(f"Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
+            try:
+                with open(self.PENDING_MESSAGES_PATH, 'w', encoding='utf-8') as f:
+                    for message in self.pending_messages:
+                        f.write(json.dumps(message) + "\n")
+#               print(f"Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
+            except Exception as e:
+                print(f"❌ Failed to save pending messages: {e}")
         else:
             print("No pending messages to save.")
-
 
     def load_pending_messages(self):
         """Loads pending messages from a file, if available."""
@@ -94,7 +90,7 @@ class Blockchain:
             print("No pending messages file found, starting fresh.")
             return []
         except Exception as e:
-            print(f"Failed to load pending messages: {e}")
+            print(f"❌ Failed to load pending messages: {e}")
             return []
 
     def save_final_blockchain(self):
@@ -109,8 +105,7 @@ class Blockchain:
                         f.write(f"  - {msg}\n")
                     f.write(f"Previous Hash: {block.previous_hash}\n")
                     f.write(f"Hash: {block.hash}\n")
-                    f.write("\n")  # Add a newline for spacing between blocks
-            print(f"Saved final blockchain to {self.FINAL_BLOCKCHAIN_PATH}")
+                    f.write("\n")
+            print(f"✔️ Final blockchain saved to {self.FINAL_BLOCKCHAIN_PATH}")
         except Exception as e:
-            print(f"Failed to save final blockchain: {e}")
-
+            print(f"❌ Failed to save final blockchain: {e}")
