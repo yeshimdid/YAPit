@@ -1,11 +1,18 @@
 import hashlib
 import json
 import os
-import time  # For generating wallet addresses
+import time
 
 DATA_DIR = '../vip'
 USER_DATA_PATH = os.path.join(DATA_DIR, 'users.json')
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Encryption key
+ENCRYPTION_KEY = "your-secure-key"  # Replace with a secure key
+
+def encrypt_data(data):
+    """Encrypts sensitive data using a hash-based approach."""
+    return hashlib.sha256((data + ENCRYPTION_KEY).encode()).hexdigest()
 
 def save_users(users):
     """Saves the user database to a file."""
@@ -30,16 +37,22 @@ def generate_wallet(username):
     unique_string = f"{username}{time.time()}"
     return hashlib.sha256(unique_string.encode()).hexdigest()
 
-def register_user(users, username, password):
-    """Registers a new user with a hashed password and wallet address."""
+def register_user(users, username, password, email):
+    """Registers a new user with a hashed password, wallet address, and encrypted email."""
     if username in users:
         print("⚠️ Username already exists.")
         return False
+    encrypted_email = encrypt_data(email)
+    for details in users.values():
+        if details.get("email") == encrypted_email:
+            print("⚠️ Email is already associated with another account.")
+            return False
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     wallet_address = generate_wallet(username)
     users[username] = {
         "password": hashed_password,
-        "wallet": wallet_address
+        "wallet": wallet_address,
+        "email": encrypted_email
     }
     save_users(users)
     print(f"✔️ User '{username}' registered successfully.")
@@ -60,22 +73,39 @@ def authenticate_user(users, username, password):
         print("❌ Invalid password.")
         return False
 
-# Example usage
+def reset_password(users, email, new_password):
+    """Resets a user's password if the encrypted email matches."""
+    encrypted_email = encrypt_data(email)
+    for username, details in users.items():
+        if details.get("email") == encrypted_email:
+            hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+            users[username]["password"] = hashed_password
+            save_users(users)
+            print(f"✔️ Password reset successfully for {username}.")
+            return True
+    print("❌ No user found with that email.")
+    return False
+
 if __name__ == "__main__":
     users = load_users()
     print("User Management System")
     while True:
-        print("\n1. Register\n2. Login\n3. Exit")
+        print("\n1. Register\n2. Login\n3. Reset Password\n4. Exit")
         choice = input("Choose an option: ").strip()
         if choice == '1':
             username = input("Enter a username: ").strip()
             password = input("Enter a password: ").strip()
-            register_user(users, username, password)
+            email = input("Enter your email: ").strip()
+            register_user(users, username, password, email)
         elif choice == '2':
             username = input("Enter your username: ").strip()
             password = input("Enter your password: ").strip()
             authenticate_user(users, username, password)
         elif choice == '3':
+            email = input("Enter your email: ").strip()
+            new_password = input("Enter your new password: ").strip()
+            reset_password(users, email, new_password)
+        elif choice == '4':
             print("Exiting...")
             break
         else:
