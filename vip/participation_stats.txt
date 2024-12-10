@@ -1,0 +1,11 @@
+User Participation Statistics:
+User: queen
+Total Blocks Contributed To: 1
+Block Indices: [1]
+Current Block Contribution: 62.50%
+
+User: king
+Total Blocks Contributed To: 1
+Block Indices: [1]
+Current Block Contribution: 37.50%
+
