@@ -1,6 +1,7 @@
 import hashlib
 import os
 import time
+import json
 
 # Update the directory path to use the 'vip' directory, relative to the 'main' folder
 DATA_DIR = '../vip'
@@ -42,13 +43,14 @@ class Blockchain:
         except Exception as e:
             print(f"Direct write test failed: {e}")
 
-    def add_message(self, message):
-        """Adds a new message to the pending messages and checks if a new block can be mined."""
-        self.pending_messages.append(message)
-        print(f"Added message: {message}")
+    def add_message(self, username, message):
+        """Adds a new message to the pending messages with the user's username."""
+        self.pending_messages.append({"username": username, "message": message})
+        print(f"Added message from {username}: {message}")
         print(f"Total pending messages: {len(self.pending_messages)}")
         self.check_mine_block()
-        self.save_pending_messages()  # Force save after adding a message
+        self.save_pending_messages()
+
 
     def check_mine_block(self):
         """Checks if the pending messages meet the mining requirement and mines a block if true."""
@@ -76,22 +78,24 @@ class Blockchain:
         if self.pending_messages:
             with open(self.PENDING_MESSAGES_PATH, 'w', encoding='utf-8') as f:
                 for message in self.pending_messages:
-                    f.write(message + "\n")
+                    # Convert each message dict to a JSON string before saving
+                    f.write(json.dumps(message) + "\n")
             print(f"Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
         else:
             print("No pending messages to save.")
+
 
     def load_pending_messages(self):
         """Loads pending messages from a file, if available."""
         try:
             with open(self.PENDING_MESSAGES_PATH, 'r', encoding='utf-8') as f:
-                messages = [line.strip() for line in f.readlines()]
-            return messages
+                return [json.loads(line.strip()) for line in f.readlines()]
         except FileNotFoundError:
             print("No pending messages file found, starting fresh.")
             return []
         except Exception as e:
             print(f"Failed to load pending messages: {e}")
+            return []
 
     def save_final_blockchain(self):
         """Saves the full blockchain to a file."""
