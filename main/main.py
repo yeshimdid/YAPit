@@ -1,5 +1,6 @@
 from blockchain import Blockchain  # Import the Blockchain class from blockchain.py
 from user_management import load_users, register_user, authenticate_user  # Import user management functions
+from participation_tracker import update_participation, calculate_participation_percentage  # Import participation tracker functions
 import hashlib
 
 MAX_MESSAGE_LENGTH = 128  # Set the maximum allowed message length
@@ -30,6 +31,7 @@ def main():
     """
     Main function to handle user authentication and interaction with the blockchain.
     """
+    global blockchain
     blockchain = Blockchain()
     users = load_users()
 
@@ -72,6 +74,7 @@ def main():
             print("Type 'save' to save the blockchain manually.")
             print("Type 'logout' to log out.")
             print("Type 'exit' to disconnect from the blockchain.")
+            print("Type 'participation' to view your participation percentage.")
 
             message = input("📝 Your message -> ").strip()
 
@@ -90,9 +93,14 @@ def main():
             elif message.lower() == 'save':
                 blockchain.save_final_blockchain()
                 print("✔️ Blockchain saved successfully.")
+            elif message.lower() == 'participation':
+                percentage = calculate_participation_percentage(current_user, len(blockchain.chain))
+                print(f"💼 Your participation percentage: {percentage:.2f}%")
             elif validate_message(message):
                 encrypted_message = encrypt_message(message)
                 blockchain.add_message(current_user, encrypted_message)
+                # Track user participation
+                update_participation(current_user, len(blockchain.chain))
 
 if __name__ == "__main__":
     main()
