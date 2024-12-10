@@ -2,8 +2,8 @@ import hashlib
 import os
 import time
 
-# Ensure the data folder exists
-DATA_DIR = 'data'
+# Update the directory path to use the 'vip' directory, relative to the 'main' folder
+DATA_DIR = '../vip'
 os.makedirs(DATA_DIR, exist_ok=True)
 
 class Block:
@@ -14,12 +14,11 @@ class Block:
         self.previous_hash = previous_hash
         self.timestamp = timestamp or time.time()
         self.hash = self.calculate_hash()
-    
+
     def calculate_hash(self):
         """Calculates the hash of the block's contents."""
         block_content = f"{self.index}{''.join(self.messages)}{self.previous_hash}{self.timestamp}"
         return hashlib.sha256(block_content.encode()).hexdigest()
-
 
 class Blockchain:
     """Manages the entire blockchain and message handling logic."""
@@ -29,24 +28,27 @@ class Blockchain:
     def __init__(self):
         self.chain = [self.create_genesis_block()]
         self.pending_messages = self.load_pending_messages()
-    
+
     def create_genesis_block(self):
         """Creates the first block (Genesis block) in the blockchain."""
         return Block(0, ["Genesis Block"], "0")
     
-    def get_message_requirement(self):
-        """Calculates the number of messages required to mine the next block."""
-        block_index = len(self.chain)
-        if block_index == 0:
-            return 1
-        phase = (block_index - 1) // 3
-        return 100 * (2 ** phase)
-    
+    def test_file_write(self):
+        """Directly writes a test line to 'pending_messages.txt' to check file writing capability."""
+        try:
+            with open(self.PENDING_MESSAGES_PATH, 'w') as f:
+                f.write("Test message for direct write\n")
+            print(f"Direct write test successful: File written at {self.PENDING_MESSAGES_PATH}")
+        except Exception as e:
+            print(f"Direct write test failed: {e}")
+
     def add_message(self, message):
         """Adds a new message to the pending messages and checks if a new block can be mined."""
         self.pending_messages.append(message)
-        print(f"📥 Added message: '{message}' ({len(self.pending_messages)}/{self.get_message_requirement()} required)")
+        print(f"Added message: {message}")
+        print(f"Total pending messages: {len(self.pending_messages)}")
         self.check_mine_block()
+        self.save_pending_messages()  # Force save after adding a message
 
     def check_mine_block(self):
         """Checks if the pending messages meet the mining requirement and mines a block if true."""
@@ -54,46 +56,57 @@ class Blockchain:
         if len(self.pending_messages) >= messages_needed:
             self.mine_block()
 
+    def get_message_requirement(self):
+        """Calculates the number of messages required to mine the next block."""
+        block_index = len(self.chain)
+        return 100 * (2 ** ((block_index - 1) // 3))
+
     def mine_block(self):
         """Mines a new block using the pending messages."""
         previous_block = self.chain[-1]
         messages_needed = self.get_message_requirement()
-        block_messages = self.pending_messages[:messages_needed]
-        new_block = Block(len(self.chain), block_messages, previous_block.hash)
+        new_block = Block(len(self.chain), self.pending_messages[:messages_needed], previous_block.hash)
         self.chain.append(new_block)
-        print(f"⛏️ Mined Block {new_block.index} with {len(new_block.messages)} messages!")
-        print(f"🔐 Block Hash: {new_block.hash}\n")
-        
+        print(f"Mined new block: {new_block.hash}")
         self.pending_messages = self.pending_messages[messages_needed:]
-        self.save_pending_messages()
+        self.save_final_blockchain()
 
     def save_pending_messages(self):
-        """Saves all pending messages to a file only if there are pending messages."""
-        if self.pending_messages:  # Save only if there are messages to save
+        """Saves all pending messages to a file."""
+        if self.pending_messages:
             with open(self.PENDING_MESSAGES_PATH, 'w', encoding='utf-8') as f:
                 for message in self.pending_messages:
                     f.write(message + "\n")
-            print(f"💾 Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
+            print(f"Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
+        else:
+            print("No pending messages to save.")
 
     def load_pending_messages(self):
         """Loads pending messages from a file, if available."""
         try:
             with open(self.PENDING_MESSAGES_PATH, 'r', encoding='utf-8') as f:
                 messages = [line.strip() for line in f.readlines()]
-            print("")
-            print(f"📂 Loaded {len(messages)} pending messages from '{self.PENDING_MESSAGES_PATH}'.")
             return messages
         except FileNotFoundError:
-            print(f"📂 No partially mined block found in '{self.PENDING_MESSAGES_PATH}' (starting fresh).")
+            print("No pending messages file found, starting fresh.")
             return []
+        except Exception as e:
+            print(f"Failed to load pending messages: {e}")
 
     def save_final_blockchain(self):
         """Saves the full blockchain to a file."""
-        with open(self.FINAL_BLOCKCHAIN_PATH, 'w', encoding='utf-8') as f:
-            for block in self.chain:
-                f.write(f"🔗 Block {block.index}:\n")
-                f.write(f"  Timestamp: {time.ctime(block.timestamp)}\n")
-                f.write(f"  Messages ({len(block.messages)} total): {block.messages}\n")
-                f.write(f"  Previous Hash: {block.previous_hash}\n")
-                f.write(f"  Hash: {block.hash}\n\n")
-        print(f"💾 Saved final blockchain to '{self.FINAL_BLOCKCHAIN_PATH}'.")
+        try:
+            with open(self.FINAL_BLOCKCHAIN_PATH, 'w', encoding='utf-8') as f:
+                for block in self.chain:
+                    f.write(f"Block {block.index}:\n")
+                    f.write(f"Timestamp: {time.ctime(block.timestamp)}\n")
+                    f.write(f"Messages ({len(block.messages)} total):\n")
+                    for msg in block.messages:
+                        f.write(f"  - {msg}\n")
+                    f.write(f"Previous Hash: {block.previous_hash}\n")
+                    f.write(f"Hash: {block.hash}\n")
+                    f.write("\n")  # Add a newline for spacing between blocks
+            print(f"Saved final blockchain to {self.FINAL_BLOCKCHAIN_PATH}")
+        except Exception as e:
+            print(f"Failed to save final blockchain: {e}")
+
