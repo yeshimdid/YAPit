@@ -106,19 +106,19 @@ def main():
         else:
             print("\nType a message to add it to the blockchain.")
             print(f"(Messages must be between 1 and {MAX_MESSAGE_LENGTH} characters.)")
-            print("Type 'status' to check your contribution status.")
-            print("Type 'save' to save the blockchain manually.")
-            print("Type 'logout' to log out.")
-            print("Type 'exit' to disconnect from the blockchain.")
+            print("Type '-status' to check your contribution status.")
+            print("Type '-save' to save the blockchain manually.")
+            print("Type '-logout' to log out.")
+            print("Type '-exit' to disconnect from the blockchain.")
 
             message = input("📝 Your message -> ").strip()
 
-            if message.lower() == 'status':
+            if message.lower() == '-status':
                 show_user_status(blockchain, current_user, users)
-            elif message.lower() == 'logout':
+            elif message.lower() == '-logout':
                 print(f"✔️ Logged out. Goodbye, {current_user}!")
                 current_user = None
-            elif message.lower() == 'exit':
+            elif message.lower() == '-exit':
                 confirm_exit = input("❓ Are you sure you want to disconnect? (yes/no): ").strip().lower()
                 if confirm_exit == 'yes':
                     blockchain.save_final_blockchain()
