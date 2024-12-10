@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import time  # For generating wallet addresses
 
 DATA_DIR = '../vip'
 USER_DATA_PATH = os.path.join(DATA_DIR, 'users.json')
@@ -9,7 +10,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 def save_users(users):
     """Saves the user database to a file."""
     with open(USER_DATA_PATH, 'w', encoding='utf-8') as f:
-        json.dump(users, f)
+        json.dump(users, f, indent=4)
     print("✔️ User database saved.")
 
 def load_users():
@@ -24,15 +25,25 @@ def load_users():
         print(f"Failed to load users: {e}")
         return {}
 
+def generate_wallet(username):
+    """Generates a unique wallet address for a user."""
+    unique_string = f"{username}{time.time()}"
+    return hashlib.sha256(unique_string.encode()).hexdigest()
+
 def register_user(users, username, password):
-    """Registers a new user with a hashed password."""
+    """Registers a new user with a hashed password and wallet address."""
     if username in users:
         print("⚠️ Username already exists.")
         return False
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    users[username] = hashed_password
+    wallet_address = generate_wallet(username)
+    users[username] = {
+        "password": hashed_password,
+        "wallet": wallet_address
+    }
     save_users(users)
     print(f"✔️ User '{username}' registered successfully.")
+    print(f"💼 Wallet Address: {wallet_address}")
     return True
 
 def authenticate_user(users, username, password):
@@ -41,8 +52,9 @@ def authenticate_user(users, username, password):
         print("⚠️ User does not exist.")
         return False
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    if users[username] == hashed_password:
+    if users[username]["password"] == hashed_password:
         print("✔️ Authentication successful.")
+        print(f"💼 Wallet Address: {users[username]['wallet']}")
         return True
     else:
         print("❌ Invalid password.")

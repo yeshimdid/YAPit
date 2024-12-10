@@ -1,7 +1,17 @@
 from blockchain import Blockchain  # Import the Blockchain class from blockchain.py
 from user_management import load_users, register_user, authenticate_user  # Import user management functions
+import hashlib
 
 MAX_MESSAGE_LENGTH = 128  # Set the maximum allowed message length
+
+# Encryption key for messages
+ENCRYPTION_KEY = "your-secure-key"  # Replace this with a secure key
+
+def encrypt_message(message):
+    """
+    Encrypts a message using a basic hash-based approach.
+    """
+    return hashlib.sha256((message + ENCRYPTION_KEY).encode()).hexdigest()
 
 def validate_message(message):
     """
@@ -46,6 +56,7 @@ def main():
                 if authenticate_user(users, username, password):
                     current_user = username
                     print(f"✔️ Welcome, {username}!")
+                    print(f"💼 Your wallet address: {users[username]['wallet']}")
                 else:
                     print("❌ Login failed. Please try again.")
             elif action == 'exit':
@@ -80,7 +91,8 @@ def main():
                 blockchain.save_final_blockchain()
                 print("✔️ Blockchain saved successfully.")
             elif validate_message(message):
-                blockchain.add_message(current_user, message)
+                encrypted_message = encrypt_message(message)
+                blockchain.add_message(current_user, encrypted_message)
 
 if __name__ == "__main__":
     main()

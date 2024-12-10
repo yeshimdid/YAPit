@@ -1,1 +1,6 @@
-{"king": "90bffe1884b84d5e255f12ff0ecbd70f2edfc877b68d612dc6fb50638b3ac17c"}
+{
+    "king": {
+        "password": "90bffe1884b84d5e255f12ff0ecbd70f2edfc877b68d612dc6fb50638b3ac17c",
+        "wallet": "00c3d64f27cc78d99fb15f4988ab876c84f65330a30997361f003041042aef48"
+    }
+}
