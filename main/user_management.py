@@ -3,9 +3,12 @@ import json
 import os
 import time
 
-DATA_DIR = '../vip'
-USER_DATA_PATH = os.path.join(DATA_DIR, 'users.json')
+# Set up the directory for storing non-Python files
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
+
+USER_DATA_PATH = os.path.join(DATA_DIR, 'users.json')
 
 # Encryption key
 ENCRYPTION_KEY = "your-secure-key"  # Replace with a secure key

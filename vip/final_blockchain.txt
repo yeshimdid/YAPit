@@ -1,7 +1,7 @@
 Block 0:
-Timestamp: Tue Dec 10 17:00:24 2024
+Timestamp: Tue Dec 10 17:24:51 2024
 Messages (1 total):
   - Genesis Block
 Previous Hash: 0
-Hash: 715967474da78f25b54ae1136f7b8fa10c01683af1505d57564575e9ba6e07e2
+Hash: 490dee6bf034ae2b40268fe4f20af45bb192449820a74ca8cb6ce91aba54c78c
 

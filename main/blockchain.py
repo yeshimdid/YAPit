@@ -4,7 +4,9 @@ import time
 import json
 from participation_tracker import update_participation, save_participation_stats, load_participation_stats
 
-DATA_DIR = '../vip'
+# Set up the directory for storing non-Python files
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
 
 class Block:
@@ -40,9 +42,7 @@ class Blockchain:
     def add_message(self, username, message):
         """Adds a new message to the pending messages with the user's username."""
         self.pending_messages.append({"username": username, "message": message})
-#        print(f"Added message from {username}: {message}")
         update_participation(username, len(self.chain))  # Track participation for the current block
-#        print(f"Participation updated for {username} in block {len(self.chain)}")
         self.check_mine_block()
         self.save_pending_messages()
 
@@ -61,25 +61,29 @@ class Blockchain:
         """Mines a new block using the pending messages."""
         previous_block = self.chain[-1]
         messages_needed = self.get_message_requirement()
-        new_block = Block(len(self.chain), self.pending_messages[:messages_needed], previous_block.hash)
+        messages = [msg["message"] for msg in self.pending_messages[:messages_needed]]
+        new_block = Block(len(self.chain), messages, previous_block.hash)
         self.chain.append(new_block)
         print(f"Mined new block: {new_block.hash}")
         self.pending_messages = self.pending_messages[messages_needed:]
         save_participation_stats()  # Save participation stats for the mined block
         self.save_final_blockchain()
+        self.save_pending_messages()
 
     def save_pending_messages(self):
         """Saves all pending messages to a file."""
-        if self.pending_messages:
-            try:
+        try:
+            if self.pending_messages:
                 with open(self.PENDING_MESSAGES_PATH, 'w', encoding='utf-8') as f:
                     for message in self.pending_messages:
                         f.write(json.dumps(message) + "\n")
-#               print(f"Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
-            except Exception as e:
-                print(f"❌ Failed to save pending messages: {e}")
-        else:
-            print("No pending messages to save.")
+                print(f"✔️ Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
+            else:
+                # Clear the file if there are no pending messages
+                open(self.PENDING_MESSAGES_PATH, 'w').close()
+                print("✔️ Cleared pending messages file.")
+        except Exception as e:
+            print(f"❌ Failed to save pending messages: {e}")
 
     def load_pending_messages(self):
         """Loads pending messages from a file, if available."""

@@ -1,0 +1,12 @@
+{
+    "king": {
+        "password": "07123e1f482356c415f684407a3b8723e10b2cbbc0b8fcd6282c49d37c9c1abc",
+        "wallet": "06522abdcfbe3cbdb1b101a4671c95659b6a784bcbeef62a43dd786a8875d80f",
+        "email": "a8a2b31df289ae3ebc03eb822b2a5598b601ca455a70a1cdad5d8f213e801646"
+    },
+    "queen": {
+        "password": "07123e1f482356c415f684407a3b8723e10b2cbbc0b8fcd6282c49d37c9c1abc",
+        "wallet": "df1880b470f94e94988ffc78eaeb111decf509d23f718f16f5e231fd08bc6a87",
+        "email": "2c0aa7f240618979c10a7b536e6b34915cb66c425b2e73269dcc2acfdd2175b2"
+    }
+}

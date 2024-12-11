@@ -1,0 +1,18 @@
+{
+    "king": {
+        "1": {
+            "count": 68,
+            "percentage": 68.0
+        }
+    },
+    "queen": {
+        "1": {
+            "count": 32,
+            "percentage": 32.0
+        },
+        "2": {
+            "count": 4,
+            "percentage": 100.0
+        }
+    }
+}

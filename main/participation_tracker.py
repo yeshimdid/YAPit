@@ -1,10 +1,14 @@
-from collections import defaultdict
+import hashlib
 import os
 import json
+from collections import defaultdict
 
-DATA_DIR = '../vip'
-PARTICIPATION_STATS_PATH = os.path.join(DATA_DIR, 'participation_stats.json')
+# Set up the directory for storing non-Python files
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
+
+PARTICIPATION_STATS_PATH = os.path.join(DATA_DIR, 'participation_stats.json')
 
 # Initialize participation tracker
 participation_tracker = defaultdict(lambda: defaultdict(int))
@@ -52,7 +56,7 @@ def save_participation_stats():
         # Save the stats to the file
         with open(PARTICIPATION_STATS_PATH, 'w', encoding='utf-8') as f:
             json.dump(participation_stats_with_percentages, f, indent=4)
-#        print(f"✔️ Participation statistics saved to {PARTICIPATION_STATS_PATH}")
+        print(f"✔️ Participation statistics saved to {PARTICIPATION_STATS_PATH}")
     except Exception as e:
         print(f"❌ Failed to save participation statistics: {e}")
 
@@ -60,7 +64,6 @@ def update_participation(user, block_index):
     """
     Updates the participation tracker for a user.
     """
-#   print(f"Updating participation for user: {user}, block_index: {block_index}")
     participation_tracker[user][block_index] += 1  # Increment the count
     save_participation_stats()  # Save after every update
 
