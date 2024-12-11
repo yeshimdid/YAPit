@@ -1,7 +1,7 @@
 import hashlib
 import json
 import os
-import time
+from wallet_management import generate_wallet  # Import wallet-related logic
 
 # Set up the directory for storing non-Python files
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,11 +34,6 @@ def load_users():
     except Exception as e:
         print(f"Failed to load users: {e}")
         return {}
-
-def generate_wallet(username):
-    """Generates a unique wallet address for a user."""
-    unique_string = f"{username}{time.time()}"
-    return hashlib.sha256(unique_string.encode()).hexdigest()
 
 def register_user(users, username, password, email):
     """Registers a new user with a hashed password, wallet address, and encrypted email."""

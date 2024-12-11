@@ -27,22 +27,44 @@ class Blockchain:
     """Manages the entire blockchain and message handling logic."""
     PENDING_MESSAGES_PATH = os.path.join(DATA_DIR, 'pending_messages.txt')
     FINAL_BLOCKCHAIN_PATH = os.path.join(DATA_DIR, 'final_blockchain.txt')
+    CURRENT_BLOCK_PATH = os.path.join(DATA_DIR, 'current_block.txt')
 
     def __init__(self):
-        # Load participation stats on startup
         load_participation_stats()
         self.chain = [self.create_genesis_block()]
         self.pending_messages = self.load_pending_messages()
+        self.current_block_index = self.load_current_block_index()
         print(f"Blockchain initialized with {len(self.chain)} blocks.")
 
     def create_genesis_block(self):
         """Creates the first block (Genesis block) in the blockchain."""
         return Block(0, ["Genesis Block"], "0")
 
+    def save_current_block_index(self):
+        """Saves the current block index to a file."""
+        try:
+            with open(self.CURRENT_BLOCK_PATH, 'w', encoding='utf-8') as f:
+                f.write(str(self.current_block_index))
+            print(f"✔️ Current block index saved as {self.current_block_index}.")
+        except Exception as e:
+            print(f"❌ Failed to save current block index: {e}")
+
+    def load_current_block_index(self):
+        """Loads the current block index from a file, or defaults to the latest mined block."""
+        try:
+            with open(self.CURRENT_BLOCK_PATH, 'r', encoding='utf-8') as f:
+                return int(f.read().strip())
+        except FileNotFoundError:
+            print("No current block index file found. Starting at latest mined block.")
+            return len(self.chain) - 1
+        except Exception as e:
+            print(f"❌ Failed to load current block index: {e}")
+            return len(self.chain) - 1
+
     def add_message(self, username, message):
         """Adds a new message to the pending messages with the user's username."""
         self.pending_messages.append({"username": username, "message": message})
-        update_participation(username, len(self.chain))  # Track participation for the current block
+        update_participation(username, self.current_block_index)
         self.check_mine_block()
         self.save_pending_messages()
 
@@ -54,7 +76,7 @@ class Blockchain:
 
     def get_message_requirement(self):
         """Calculates the number of messages required to mine the next block."""
-        block_index = len(self.chain)
+        block_index = self.current_block_index + 1
         return 100 * (2 ** ((block_index - 1) // 3))
 
     def mine_block(self):
@@ -65,8 +87,14 @@ class Blockchain:
         new_block = Block(len(self.chain), messages, previous_block.hash)
         self.chain.append(new_block)
         print(f"Mined new block: {new_block.hash}")
+
+        # Advance to the next block
+        self.current_block_index += 1
+        self.save_current_block_index()
+
+        # Remove mined messages and save state
         self.pending_messages = self.pending_messages[messages_needed:]
-        save_participation_stats()  # Save participation stats for the mined block
+        save_participation_stats()
         self.save_final_blockchain()
         self.save_pending_messages()
 
@@ -79,7 +107,6 @@ class Blockchain:
                         f.write(json.dumps(message) + "\n")
                 print(f"✔️ Saved {len(self.pending_messages)} pending messages to '{self.PENDING_MESSAGES_PATH}'.")
             else:
-                # Clear the file if there are no pending messages
                 open(self.PENDING_MESSAGES_PATH, 'w').close()
                 print("✔️ Cleared pending messages file.")
         except Exception as e:
