@@ -1,5 +1,3 @@
-# wallet_management.py
-
 import hashlib
 import time
 

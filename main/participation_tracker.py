@@ -9,7 +9,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 PARTICIPATION_STATS_PATH = os.path.join(DATA_DIR, 'participation_stats.json')
 
-# Initialize participation tracker
+# Initializes participation tracker
 participation_tracker = defaultdict(lambda: defaultdict(int))
 
 def load_participation_stats():

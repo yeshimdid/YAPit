@@ -1,22 +1,18 @@
 {
     "king": {
         "0": {
-            "count": 80,
-            "percentage": 80.0
+            "count": 100,
+            "percentage": 100.0
         },
         "1": {
-            "count": 28,
-            "percentage": 53.84615384615385
+            "count": 3,
+            "percentage": 10.344827586206897
         }
     },
     "queen": {
-        "0": {
-            "count": 20,
-            "percentage": 20.0
-        },
         "1": {
-            "count": 24,
-            "percentage": 46.15384615384615
+            "count": 26,
+            "percentage": 89.65517241379311
         }
     }
 }

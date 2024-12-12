@@ -4,7 +4,7 @@ import time
 import json
 from participation_tracker import update_participation, save_participation_stats, load_participation_stats
 
-# Set up the directory for storing non-Python files
+# Sets up the directory for storing data files
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
